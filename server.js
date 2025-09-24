@@ -1,37 +1,41 @@
+// Load environment variables from a .env file into process.env
 require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
+
+// Import required packages
+const express = require('express');   // Web framework for building APIs
+const mongoose = require('mongoose'); // MongoDB object modeling tool
+const cors = require('cors');         // Enables Cross-Origin Resource Sharing
+const helmet = require('helmet');     // Adds extra security headers to HTTP responses
 
 // Import routes
-const authRoutes = require('./routes/auth');
-const taskRoutes = require('./routes/tasks');
+const authRoutes = require('./routes/auth');   // Authentication-related routes
+const taskRoutes = require('./routes/tasks');  // Task management routes
 
-// Import middleware
-const errorHandler = require('./middleware/errorHandler');
-const auth = require('./middleware/auth');
+// Import custom middleware
+const errorHandler = require('./middleware/errorHandler'); // Global error handler
+const auth = require('./middleware/auth');                 // Authentication middleware
 
+// Initialize Express app
 const app = express();
 
-// Security middleware
-app.use(helmet());
-app.use(cors());
+// Apply security middleware
+app.use(helmet()); // Protects app from common security vulnerabilities
+app.use(cors());   // Allows requests from different origins (frontend apps, etc.)
 
-// Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Apply body parsing middleware
+app.use(express.json());                       // Parse incoming JSON request bodies
+app.use(express.urlencoded({ extended: true })); // Parse URL-encoded form data
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('✅ Connected to MongoDB'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
+// Connect to MongoDB database
+mongoose.connect(process.env.MONGODB_URI)  // Connection string stored in .env file
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tasks', auth, taskRoutes);
+// Define routes
+app.use('/api/auth', authRoutes);                 // Public auth routes (register/login)
+app.use('/api/tasks', auth, taskRoutes);          // Task routes (protected by auth middleware)
 
-// Test route
+// Root route (helpful for testing and documentation)
 app.get('/', (req, res) => {
   res.json({ 
     message: 'Task Management API is running!',
@@ -54,7 +58,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health check endpoint (useful for monitoring and load balancers)
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
@@ -62,14 +66,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware (should be last)
+// Global error handling middleware (must be defined last)
 app.use(errorHandler);
 
-// Handle 404
+// Catch-all for undefined routes (404 Not Found)
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+// Start server on given port (from env or default to 3000)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
