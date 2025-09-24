@@ -76,7 +76,7 @@ app.use((req, res) => {
 
 // Start server on given port (from env or default to 3000)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📖 Visit: http://localhost:${PORT}`);
 });
