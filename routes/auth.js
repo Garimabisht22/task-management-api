@@ -8,7 +8,14 @@ const router = express.Router();
 const registerSchema = Joi.object({
   name: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
-  password: Joi.string().min(6).required()
+  password: Joi.string().min(6).required(),
+  confirmPassword: Joi.string()
+    .required()
+    .valid(Joi.ref('password'))
+    .messages({
+      'any.only': 'Confirm password must match password'
+    })
+    .strip() // Automatically removes confirmPassword from validated output
 });
 
 const loginSchema = Joi.object({
@@ -26,6 +33,7 @@ router.post('/register', async (req, res, next) => {
     if (error) {
       return res.status(400).json({ error: error.details[0].message });
     }
+    
 
     const { name, email, password } = value;
 
